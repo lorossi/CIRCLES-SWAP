@@ -1,11 +1,11 @@
 class Sketch extends Engine {
   preload() {
-    this._size = 8;
+    this._size = 6;
     this._background_color = "rgb(15, 15, 15)";
     this._border = 0.2;
     this._step_duration = 90;
     this._steps = 10;
-    this._max_distance = 6;
+    this._max_distance = 4;
     this._max_tries = 50000;
     this._recording = false;
   }
