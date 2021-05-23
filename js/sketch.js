@@ -1,15 +1,18 @@
 class Sketch extends Engine {
   preload() {
-    this._size = 6;
+    this._size = 8;
     this._background_color = "rgb(15, 15, 15)";
     this._border = 0.2;
-    this._duration = 120;
-    this._max_distance = 5;
+    this._step_duration = 90;
+    this._steps = 10;
+    this._max_distance = 6;
     this._max_tries = 50000;
+    this._recording = false;
   }
 
   setup() {
     this._pairs = this._size ** 2 / 8;
+    this._current_step = 0;
     const scl = this.width * (1 - this._border) / this._size;
     this._circles = [];
     for (let i = 0; i < this._size ** 2; i++) {
@@ -17,13 +20,27 @@ class Sketch extends Engine {
       const new_circle = new Circle(pos.x, pos.y, scl);
       this._circles.push(new_circle);
     }
+
+    // setup capturer
+    if (this._recording) {
+      this._capturer = new CCapture({ format: "png" });
+    }
+    this._capturer_started = false;
   }
 
   draw() {
-    const percent = easeInOut((this.frameCount % this._duration) / this._duration);
+    if (!this._capturer_started && this._recording) {
+      this._capturer_started = true;
+      this._capturer.start();
+      console.log("%c Recording started", "color: green; font-size: 2rem");
+    }
+
+    const percent = easeInOut((this.frameCount % this._step_duration) / this._step_duration);
     const border_size = this.width * this._border / 2;
 
     if (percent == 0) {
+      // update the current step
+      this._current_step++;
       // reset each circle source and destination
       this._circles.forEach(c => c.resetPos());
       // array containing assigned position for each circle
@@ -54,6 +71,17 @@ class Sketch extends Engine {
     }
 
     this.ctx.restore();
+
+    if (this._recording) {
+      if (this._current_step <= this._steps) {
+        this._capturer.capture(this._canvas);
+      } else {
+        this._recording = false;
+        this._capturer.stop();
+        this._capturer.save();
+        console.log("%c Recording ended", "color: red; font-size: 2rem");
+      }
+    }
   }
 
   _make_pairs() {

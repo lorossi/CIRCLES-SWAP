@@ -4,7 +4,7 @@ class Circle {
     this._start_y = y;
     this._scl = scl;
 
-    this._border = 0.2;
+    this._border = 0.4;
     this._trail_length = 5;
 
     this._x = this._start_x;
@@ -26,15 +26,13 @@ class Circle {
     ctx.translate(this._scl / 2, this._scl / 2);
     ctx.globalCompositeOperation = "screen";
     for (let i = this._old_pos.length - 1; i >= 0; i--) {
-      const channel = 100 + 130 * (1 - i / this._old_pos.length);
-
       ctx.save();
       ctx.translate(this._old_pos[i].x * this._scl, this._old_pos[i].y * this._scl);
       for (let j = 0; j < this._colors_mask.length; j++) {
         ctx.save();
         ctx.translate(this._dpos[j], this._dpos[j]);
         ctx.beginPath();
-        ctx.fillStyle = `rgb(${channel * this._colors_mask[j][0]}, ${channel * this._colors_mask[j][1]}, ${channel * this._colors_mask[j][2]})`;
+        ctx.fillStyle = `rgb(${355 * this._colors_mask[j][0]}, ${255 * this._colors_mask[j][1]}, ${255 * this._colors_mask[j][2]})`;
         ctx.arc(0, 0, r, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
