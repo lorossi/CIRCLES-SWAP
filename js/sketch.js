@@ -1,9 +1,9 @@
 class Sketch extends Engine {
   preload() {
     this._size = 10;
-    this._swaps = 2;
+    this._pairs = 10;
     this._background_color = "rgb(15, 15, 15)";
-    this._border = 0.1;
+    this._border = 0.2
     this._duration = 60;
   }
 
@@ -22,14 +22,19 @@ class Sketch extends Engine {
     const border_size = this.width * this._border / 2;
 
     if (percent == 0) {
+      // reset each circle source and destination
       this._circles.forEach(c => c.resetPos());
-      this._assigned_position = new Array(this._size).fill().map(a => new Array(this._size).fill());
+      // array containing assigned position for each circle
+      this._assigned_positions = new Array(this._size).fill().map(a => new Array(this._size).fill());
 
       let count = 0;
-      while (count < this._swaps) {
+      while (count < this._pairs) {
+        // brute force approach
+        // if it fails, just try again until a minimum amount of swaps has been reached
         if (this._make_pairs()) count++;
       }
 
+      // set circles source and destination
       this._pair_circles();
     }
 
@@ -48,10 +53,12 @@ class Sketch extends Engine {
   }
 
   _make_pairs() {
-    const rotation_dir = Math.random() > 0.5 ? -1 : 1; // rotation direction: 1 clockwise
+    const rotation_dir = random() > 0.5 ? -1 : 1; // rotation direction: 1 clockwise
     const start_x = random_int(this._size - 1);
     const start_y = random_int(this._size - 1);
 
+    // displacement for each circle, relative to side
+    // the rotation dir influences the next direction
     const dirs = [{
       x: rotation_dir,
       y: 0,
@@ -66,20 +73,25 @@ class Sketch extends Engine {
       y: 0,
     }];
 
+    // max side dimension
     let max;
     if (rotation_dir == -1) {
+      // top left
       max = Math.min(start_x, start_y);
     } else {
+      // bottom right
       max = Math.min(this._size - start_x, this._size - start_y);
     }
-
+    // max = 0 -> the rotation cannot happen in this direction. It's easier to just return false
+    if (max == 0) return false;
+    // actual side calculation
     const side = random_int(1, max);
-
+    // check if each of these circles has not been already paired
     for (let i = 0; i < 4; i++) {
-      if (this._assigned_position[start_x + dirs[i].x * side][start_y + dirs[i].y * side]) return false;
+      if (this._assigned_positions[start_x + dirs[i].x * side][start_y + dirs[i].y * side]) return false;
     }
 
-
+    // set new directions in the array
     if (rotation_dir == 1) {
       for (let i = 0; i < 4; i++) {
         const first_x = start_x + dirs[i].x * side;
@@ -87,7 +99,7 @@ class Sketch extends Engine {
         const second_x = start_x + dirs[(i + 1) % 4].x * side;
         const second_y = start_y + dirs[(i + 1) % 4].y * side;
 
-        this._assigned_position[first_x][first_y] = { x: second_x, y: second_y };
+        this._assigned_positions[first_x][first_y] = { x: second_x, y: second_y };
       }
     } else {
       for (let i = 3; i >= 0; i--) {
@@ -99,19 +111,20 @@ class Sketch extends Engine {
         const second_x = start_x + dirs[second_index].x * side;
         const second_y = start_y + dirs[second_index].y * side;
 
-        this._assigned_position[first_x][first_y] = { x: second_x, y: second_y };
+        this._assigned_positions[first_x][first_y] = { x: second_x, y: second_y };
       }
     }
-
+    // everything went right, return true
     return true;
   }
 
   _pair_circles() {
+    // make actual pairs starting from the array
     for (let x = 0; x < this._size; x++) {
       for (let y = 0; y < this._size; y++) {
-        if (this._assigned_position[x][y]) {
+        if (this._assigned_positions[x][y]) {
           const current = this._circles.filter(c => c.x == x && c.y == y)[0];
-          const next = this._circles.filter(c => c.x == this._assigned_position[x][y].x && c.y == this._assigned_position[x][y].y)[0];
+          const next = this._circles.filter(c => c.x == this._assigned_positions[x][y].x && c.y == this._assigned_positions[x][y].y)[0];
           current.pair(next);
         }
       }
@@ -125,15 +138,10 @@ const xy_from_index = (i, width) => {
   return { x: x, y: y };
 };
 
-const shuffle_array = arr => {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-};
-
-const random_from_array = arr => {
-  return arr[random_int(arr.length - 1)];
+const random = (a, b) => {
+  if (a == undefined && b == undefined) return random(0, 1);
+  else if (b == undefined) return random(0, a);
+  else if (a != undefined && b != undefined) return Math.random() * (b - a) + a;
 };
 
 const random_int = (a, b) => {
