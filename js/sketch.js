@@ -1,16 +1,17 @@
 class Sketch extends Engine {
   preload() {
-    this._cols = 10;
+    this._size = 10;
+    this._swaps = 2;
     this._background_color = "rgb(15, 15, 15)";
     this._border = 0.1;
     this._duration = 60;
   }
 
   setup() {
-    const scl = this.width * (1 - this._border) / this._cols;
+    const scl = this.width * (1 - this._border) / this._size;
     this._circles = [];
-    for (let i = 0; i < this._cols ** 2; i++) {
-      const pos = xy_from_index(i, this._cols);
+    for (let i = 0; i < this._size ** 2; i++) {
+      const pos = xy_from_index(i, this._size);
       const new_circle = new Circle(pos.x, pos.y, scl);
       this._circles.push(new_circle);
     }
@@ -22,20 +23,14 @@ class Sketch extends Engine {
 
     if (percent == 0) {
       this._circles.forEach(c => c.resetPos());
-      this._assigned_position = new Array(this._cols).fill().map(a => new Array(this._cols).fill());
+      this._assigned_position = new Array(this._size).fill().map(a => new Array(this._size).fill());
 
-      this._make_pairs();
-      console.table(this._assigned_position);
-
-      for (let x = 0; x < this._cols; x++) {
-        for (let y = 0; y < this._cols; y++) {
-          if (this._assigned_position[x][y]) {
-            const current = this._circles.filter(c => c.x == x && c.y == y)[0];
-            const next = this._circles.filter(c => c.x == this._assigned_position[x][y].x && c.y == this._assigned_position[x][y].y)[0];
-            current.pair(next);
-          }
-        }
+      let count = 0;
+      while (count < this._swaps) {
+        if (this._make_pairs()) count++;
       }
+
+      this._pair_circles();
     }
 
     this.ctx.save();
@@ -53,55 +48,72 @@ class Sketch extends Engine {
   }
 
   _make_pairs() {
-    for (let i = 0; i < 1; i++) {
-      const first = { x: random_int(this._cols - 1), y: random_int(this._cols - 1) };
-      if (this._assigned_position[first.x][first.y]) continue;
+    const rotation_dir = Math.random() > 0.5 ? -1 : 1; // rotation direction: 1 clockwise
+    const start_x = random_int(this._size - 1);
+    const start_y = random_int(this._size - 1);
 
-      let dirs = [];
-      if (first.x < this._cols - 1) dirs.push(0);
-      if (first.y < this._cols - 1) dirs.push(1);
-      if (first.x > 0) dirs.push(2);
-      if (first.y > 0) dirs.push(3);
-      shuffle_array(dirs);
-      const current_dir = random_from_array(dirs);
+    const dirs = [{
+      x: rotation_dir,
+      y: 0,
+    }, {
+      x: rotation_dir,
+      y: rotation_dir,
+    }, {
+      x: 0,
+      y: rotation_dir,
+    }, {
+      x: 0,
+      y: 0,
+    }];
+
+    let max;
+    if (rotation_dir == -1) {
+      max = Math.min(start_x, start_y);
+    } else {
+      max = Math.min(this._size - start_x, this._size - start_y);
+    }
+
+    const side = random_int(1, max);
+
+    for (let i = 0; i < 4; i++) {
+      if (this._assigned_position[start_x + dirs[i].x * side][start_y + dirs[i].y * side]) return false;
+    }
 
 
-      if (current_dir == 0) {
-        // right
-        const max = Math.min(this._cols - first.x, this._cols - first.y);
-        const side = random_int(1, max);
-        // clockwise
-        this._assigned_position[first.x][first.y] = { x: first.x + side, y: first.y }; // right
-        this._assigned_position[first.x + side][first.y] = { x: first.x + side, y: first.y + side }; // bottom-right
-        this._assigned_position[first.x + side][first.y + side] = { x: first.x, y: first.y + side };// below
-        this._assigned_position[first.x][first.y + side] = { x: first.x, y: first.y };
-      } else if (current_dir == 1) {
-        // bottom
-        const max = Math.min(this._cols - first.x, this._cols - first.y);
-        const side = random_int(1, max);
-        // counter-clockwise
-        this._assigned_position[first.x][first.y] = { x: first.x, y: first.y + side }; // below
-        this._assigned_position[first.x][first.y + side] = { x: first.x + side, y: first.y + side }; // bottom-right
-        this._assigned_position[first.x + side][first.y + side] = { x: first.x + side, y: first.y }; // right
-        this._assigned_position[first.x + side][first.y] = { x: first.x, y: first.y };
-      } else if (current_dir == 2) {
-        // left
-        const max = Math.min(first.x, first.y);
-        const side = random_int(1, max);
-        // clockwise
-        this._assigned_position[first.x][first.y] = { x: first.x - side, y: first.y }; // left
-        this._assigned_position[first.x - side][first.y] = { x: first.x - side, y: first.y - side }; // top-left
-        this._assigned_position[first.x - side][first.y - side] = { x: first.x, y: first.y - side };// below
-        this._assigned_position[first.x][first.y - side] = { x: first.x, y: first.y };
-      } else if (current_dir == 3) {
-        // top
-        const max = Math.min(first.x, first.y);
-        const side = random_int(1, max);
-        // counter-clockwise
-        this._assigned_position[first.x][first.y] = { x: first.x, y: first.y - side }; // top
-        this._assigned_position[first.x][first.y - side] = { x: first.x - side, y: first.y - side }; // top-left
-        this._assigned_position[first.x - side][first.y - side] = { x: first.x - side, y: first.y };// left
-        this._assigned_position[first.x - side][first.y] = { x: first.x, y: first.y };
+    if (rotation_dir == 1) {
+      for (let i = 0; i < 4; i++) {
+        const first_x = start_x + dirs[i].x * side;
+        const first_y = start_y + dirs[i].y * side;
+        const second_x = start_x + dirs[(i + 1) % 4].x * side;
+        const second_y = start_y + dirs[(i + 1) % 4].y * side;
+
+        this._assigned_position[first_x][first_y] = { x: second_x, y: second_y };
+      }
+    } else {
+      for (let i = 3; i >= 0; i--) {
+        let second_index = i - 1;
+        if (second_index < 0) second_index = 3;
+
+        const first_x = start_x + dirs[i].x * side;
+        const first_y = start_y + dirs[i].y * side;
+        const second_x = start_x + dirs[second_index].x * side;
+        const second_y = start_y + dirs[second_index].y * side;
+
+        this._assigned_position[first_x][first_y] = { x: second_x, y: second_y };
+      }
+    }
+
+    return true;
+  }
+
+  _pair_circles() {
+    for (let x = 0; x < this._size; x++) {
+      for (let y = 0; y < this._size; y++) {
+        if (this._assigned_position[x][y]) {
+          const current = this._circles.filter(c => c.x == x && c.y == y)[0];
+          const next = this._circles.filter(c => c.x == this._assigned_position[x][y].x && c.y == this._assigned_position[x][y].y)[0];
+          current.pair(next);
+        }
       }
     }
   }
