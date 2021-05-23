@@ -1,13 +1,15 @@
 class Sketch extends Engine {
   preload() {
-    this._size = 10;
-    this._pairs = 10;
+    this._size = 6;
     this._background_color = "rgb(15, 15, 15)";
-    this._border = 0.2
-    this._duration = 60;
+    this._border = 0.2;
+    this._duration = 120;
+    this._max_distance = 5;
+    this._max_tries = 50000;
   }
 
   setup() {
+    this._pairs = this._size ** 2 / 8;
     const scl = this.width * (1 - this._border) / this._size;
     this._circles = [];
     for (let i = 0; i < this._size ** 2; i++) {
@@ -28,10 +30,12 @@ class Sketch extends Engine {
       this._assigned_positions = new Array(this._size).fill().map(a => new Array(this._size).fill());
 
       let count = 0;
-      while (count < this._pairs) {
+      let tries = 0;
+      while (count < this._pairs && tries < this._max_tries) {
         // brute force approach
         // if it fails, just try again until a minimum amount of swaps has been reached
         if (this._make_pairs()) count++;
+        tries++;
       }
 
       // set circles source and destination
@@ -77,10 +81,10 @@ class Sketch extends Engine {
     let max;
     if (rotation_dir == -1) {
       // top left
-      max = Math.min(start_x, start_y);
+      max = Math.min(start_x, start_y, this._max_distance);
     } else {
       // bottom right
-      max = Math.min(this._size - start_x, this._size - start_y);
+      max = Math.min(this._size - start_x, this._size - start_y, this._max_distance);
     }
     // max = 0 -> the rotation cannot happen in this direction. It's easier to just return false
     if (max == 0) return false;

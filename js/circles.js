@@ -15,6 +15,8 @@ class Circle {
     this._paired = false;
     this._has_to_move = false;
     this._old_pos = [new Point(this._x, this._y)];
+    this._dpos = [-1, 1, 0];
+    this._colors_mask = [[1, 0, 1], [0, 1, 1], [1, 1, 1]];
   }
 
   show(ctx) {
@@ -22,16 +24,21 @@ class Circle {
     const r = this._scl * (1 - this._border) / 2;
     ctx.save();
     ctx.translate(this._scl / 2, this._scl / 2);
-
+    ctx.globalCompositeOperation = "screen";
     for (let i = this._old_pos.length - 1; i >= 0; i--) {
       const channel = 100 + 130 * (1 - i / this._old_pos.length);
 
       ctx.save();
       ctx.translate(this._old_pos[i].x * this._scl, this._old_pos[i].y * this._scl);
-      ctx.beginPath();
-      ctx.fillStyle = `rgb(${channel}, ${channel}, ${channel})`;
-      ctx.arc(0, 0, r, 0, Math.PI * 2);
-      ctx.fill();
+      for (let j = 0; j < this._colors_mask.length; j++) {
+        ctx.save();
+        ctx.translate(this._dpos[j], this._dpos[j]);
+        ctx.beginPath();
+        ctx.fillStyle = `rgb(${channel * this._colors_mask[j][0]}, ${channel * this._colors_mask[j][1]}, ${channel * this._colors_mask[j][2]})`;
+        ctx.arc(0, 0, r, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
       ctx.restore();
     }
 
