@@ -13,7 +13,8 @@ class Circle {
     this._end_y = this._start_y;
 
     this._paired = false;
-    this._old_pos = [];
+    this._has_to_move = false;
+    this._old_pos = [new Point(this._x, this._y)];
   }
 
   show(ctx) {
@@ -38,7 +39,7 @@ class Circle {
   }
 
   move(percent) {
-    this._old_pos.unshift({ x: this._x, y: this._y });
+    this._old_pos.unshift(new Point(this._x, this._y));
     if (this._old_pos.length > this._trail_length) {
       this._old_pos = this._old_pos.splice(0, this._trail_length);
     }
@@ -70,5 +71,13 @@ class Circle {
 
   get y() {
     return this._start_y;
+  }
+
+  get has_to_move() {
+    return this._has_to_move;
+  }
+
+  set has_to_move(h) {
+    this._has_to_move = h;
   }
 }
