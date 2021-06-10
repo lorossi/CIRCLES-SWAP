@@ -1,26 +1,32 @@
 class Circle {
   constructor(x, y, scl) {
+    // starting position
     this._start_x = x;
     this._start_y = y;
+    // circle grid size
     this._scl = scl;
 
+    // spacing inside the grid
     this._border = 0.4;
+    // trail length to add some movement
     this._trail_length = 5;
 
+    // current and end position
     this._x = this._start_x;
     this._y = this._start_y;
     this._end_x = this._start_x;
     this._end_y = this._start_y;
 
-    this._paired = false;
-    this._has_to_move = false;
+    // old position, keep track for trailing
     this._old_pos = [new Point(this._x, this._y)];
+    // offset for chromatic aberration
     this._dpos = [-1, 1, 0];
+    // colors for chromatic aberration
     this._colors_mask = [[1, 0, 1], [0, 1, 1], [1, 1, 1]];
   }
 
   show(ctx) {
-
+    // circle radius
     const r = this._scl * (1 - this._border) / 2;
     ctx.save();
     ctx.translate(this._scl / 2, this._scl / 2);
@@ -44,30 +50,29 @@ class Circle {
   }
 
   move(percent) {
+    // add pos in front
     this._old_pos.unshift(new Point(this._x, this._y));
+    // remove last old pos if too long
     if (this._old_pos.length > this._trail_length) {
       this._old_pos = this._old_pos.splice(0, this._trail_length);
     }
+    // move to new position, lerp between start and end
     this._x = this._start_x + percent * (this._end_x - this._start_x);
     this._y = this._start_y + percent * (this._end_y - this._start_y);
   }
 
   pair(other) {
+    // pair two circles
     this._end_x = other.x;
     this._end_y = other.y;
-    this._paired = true;
   }
 
   resetPos() {
+    // reset position so it won't move anymore
     this._start_x = this._end_x;
     this._start_y = this._end_y;
     this._x = this._end_x;
     this._y = this._end_y;
-    this._paired = false;
-  }
-
-  get paired() {
-    return this._paired;
   }
 
   get x() {
@@ -76,13 +81,5 @@ class Circle {
 
   get y() {
     return this._start_y;
-  }
-
-  get has_to_move() {
-    return this._has_to_move;
-  }
-
-  set has_to_move(h) {
-    this._has_to_move = h;
   }
 }
