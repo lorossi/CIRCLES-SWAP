@@ -9,7 +9,7 @@ class Circle {
     // spacing inside the grid
     this._border = 0.4;
     // trail length to add some movement
-    this._trail_length = 5;
+    this._trail_length = 3;
 
     // current and end position
     this._x = this._start_x;
@@ -20,9 +20,9 @@ class Circle {
     // old position, keep track for trailing
     this._old_pos = [new Point(this._x, this._y)];
     // offset for chromatic aberration
-    this._dpos = [-1, 1, 0];
+    this._dpos = [-2, 2, 0];
     // colors for chromatic aberration
-    this._colors_mask = [[1, 0, 1], [0, 1, 1], [1, 1, 1]];
+    this._colors_mask = [[1, 0, 1, 0.5], [0, 1, 1, 0.5], [1, 1, 1, 1]];
   }
 
   show(ctx) {
@@ -38,7 +38,7 @@ class Circle {
         ctx.save();
         ctx.translate(this._dpos[j], this._dpos[j]);
         ctx.beginPath();
-        ctx.fillStyle = `rgb(${355 * this._colors_mask[j][0]}, ${255 * this._colors_mask[j][1]}, ${255 * this._colors_mask[j][2]})`;
+        ctx.fillStyle = `rgba(${355 * this._colors_mask[j][0]}, ${255 * this._colors_mask[j][1]}, ${255 * this._colors_mask[j][2]},  ${255 * this._colors_mask[j][3]})`;
         ctx.arc(0, 0, r, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
@@ -68,7 +68,7 @@ class Circle {
   }
 
   resetPos() {
-    // reset position so it won't move anymore
+    // reset position so it won't move any more
     this._start_x = this._end_x;
     this._start_y = this._end_y;
     this._x = this._end_x;

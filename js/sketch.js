@@ -5,13 +5,12 @@ class Sketch extends Engine {
     this._border = 0.2;
     this._step_duration = 90;
     this._steps = 10;
-    this._max_distance = 4;
-    this._max_tries = 50000;
+    this._max_distance = 2;
+    this._max_tries = 5000;
     this._recording = false;
   }
 
   setup() {
-    this._pairs = this._size ** 2 / 8;
     this._current_step = 0;
     const scl = this.width * (1 - this._border) / this._size;
     this._circles = [];
@@ -46,12 +45,11 @@ class Sketch extends Engine {
       // array containing assigned position for each circle
       this._assigned_positions = new Array(this._size).fill().map(a => new Array(this._size).fill());
 
-      let count = 0;
       let tries = 0;
-      while (count < this._pairs && tries < this._max_tries) {
+      while (tries < this._max_tries) {
         // brute force approach
         // if it fails, just try again until a minimum amount of swaps has been reached
-        if (this._make_pairs()) count++;
+        this._make_pairs();
         tries++;
       }
 
@@ -183,7 +181,8 @@ const random_int = (a, b) => {
 };
 
 const easeInOut = (x) =>
-  x < 0.5 ? 8 * Math.pow(x, 4) : 1 - Math.pow(-2 * x + 2, 4) / 2;
+  x < 0.5 ? 16 * Math.pow(x, 5) : 1 - Math.pow(-2 * x + 2, 5) / 2;
+
 
 const find_neighbours = (x, y, size) => {
   let neighbours = [];
