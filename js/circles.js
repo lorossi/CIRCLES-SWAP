@@ -9,7 +9,7 @@ class Circle {
     // spacing inside the grid
     this._border = 0.4;
     // trail length to add some movement
-    this._trail_length = 3;
+    this._trail_length = 30;
 
     // current and end position
     this._x = this._start_x;
@@ -20,25 +20,28 @@ class Circle {
     // old position, keep track for trailing
     this._old_pos = [new Point(this._x, this._y)];
     // offset for chromatic aberration
-    this._dpos = [-2, 2, 0];
+    this._dpos = [-1, 1, 0];
     // colors for chromatic aberration
-    this._colors_mask = [[1, 0, 1, 0.5], [0, 1, 1, 0.5], [1, 1, 1, 1]];
+    this._colors_mask = ["#FF00FF", "#00FFFF", "#FFFFFF"];
   }
 
   show(ctx) {
     // circle radius
-    const r = this._scl * (1 - this._border) / 2;
+    const r = (this._scl * (1 - this._border)) / 2;
     ctx.save();
     ctx.translate(this._scl / 2, this._scl / 2);
     ctx.globalCompositeOperation = "screen";
     for (let i = this._old_pos.length - 1; i >= 0; i--) {
       ctx.save();
-      ctx.translate(this._old_pos[i].x * this._scl, this._old_pos[i].y * this._scl);
+      ctx.translate(
+        this._old_pos[i].x * this._scl,
+        this._old_pos[i].y * this._scl
+      );
       for (let j = 0; j < this._colors_mask.length; j++) {
         ctx.save();
         ctx.translate(this._dpos[j], this._dpos[j]);
         ctx.beginPath();
-        ctx.fillStyle = `rgba(${355 * this._colors_mask[j][0]}, ${255 * this._colors_mask[j][1]}, ${255 * this._colors_mask[j][2]},  ${255 * this._colors_mask[j][3]})`;
+        ctx.fillStyle = this._colors_mask[j];
         ctx.arc(0, 0, r, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
