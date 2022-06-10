@@ -1,15 +1,17 @@
 class Circle {
-  constructor(x, y, scl) {
+  constructor(x, y, scl, trail_length) {
     // starting position
     this._start_x = x;
     this._start_y = y;
     // circle grid size
     this._scl = scl;
 
+    // trail length to add some movement
+    this._trail_length = trail_length;
+
     // spacing inside the grid
     this._border = 0.4;
-    // trail length to add some movement
-    this._trail_length = 30;
+    this._r = (this._scl * (1 - this._border)) / 2;
 
     // current and end position
     this._x = this._start_x;
@@ -17,17 +19,18 @@ class Circle {
     this._end_x = this._start_x;
     this._end_y = this._start_y;
 
+    this._moving = false;
+
     // old position, keep track for trailing
     this._old_pos = [new Point(this._x, this._y)];
     // offset for chromatic aberration
-    this._dpos = [-1, 1, 0];
+    this._d_pos = [-1, 1, 0];
     // colors for chromatic aberration
-    this._colors_mask = ["#FF00FF", "#00FFFF", "#FFFFFF"];
+    this._colours = ["#FF00FF", "#00FFFF", "#FFFFFF"];
   }
 
   show(ctx) {
     // circle radius
-    const r = (this._scl * (1 - this._border)) / 2;
     ctx.save();
     ctx.translate(this._scl / 2, this._scl / 2);
     ctx.globalCompositeOperation = "screen";
@@ -37,12 +40,12 @@ class Circle {
         this._old_pos[i].x * this._scl,
         this._old_pos[i].y * this._scl
       );
-      for (let j = 0; j < this._colors_mask.length; j++) {
+      for (let j = 0; j < this._colours.length; j++) {
         ctx.save();
-        ctx.translate(this._dpos[j], this._dpos[j]);
+        ctx.translate(this._d_pos[j], this._d_pos[j]);
         ctx.beginPath();
-        ctx.fillStyle = this._colors_mask[j];
-        ctx.arc(0, 0, r, 0, Math.PI * 2);
+        ctx.fillStyle = this._colours[j];
+        ctx.arc(0, 0, this._r, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       }
@@ -52,30 +55,34 @@ class Circle {
     ctx.restore();
   }
 
-  move(percent) {
+  update(percent) {
     // add pos in front
-    this._old_pos.unshift(new Point(this._x, this._y));
+    if (this._moving) this._old_pos.unshift(new Point(this._x, this._y));
+    else if (this._old_pos.length > 1) this._old_pos.pop();
+
     // remove last old pos if too long
-    if (this._old_pos.length > this._trail_length) {
+    if (this._old_pos.length > this._trail_length)
       this._old_pos = this._old_pos.splice(0, this._trail_length);
-    }
-    // move to new position, lerp between start and end
+
+    // move to new position, linear interpolate between start and end
     this._x = this._start_x + percent * (this._end_x - this._start_x);
     this._y = this._start_y + percent * (this._end_y - this._start_y);
+
+    if (percent >= 1) this.resetPos();
   }
 
-  pair(other) {
+  setDest(other) {
     // pair two circles
     this._end_x = other.x;
     this._end_y = other.y;
+    this._moving = true;
   }
 
   resetPos() {
-    // reset position so it won't move any more
     this._start_x = this._end_x;
     this._start_y = this._end_y;
-    this._x = this._end_x;
-    this._y = this._end_y;
+
+    this._moving = false;
   }
 
   get x() {
@@ -84,5 +91,21 @@ class Circle {
 
   get y() {
     return this._start_y;
+  }
+
+  get moving() {
+    return this._moving;
+  }
+
+  get has_tail() {
+    return this._old_pos.length > 1;
+  }
+
+  get ended() {
+    return this._old_pos.length == 1;
+  }
+
+  get trail_length() {
+    return this._old_pos.length - 1;
   }
 }
