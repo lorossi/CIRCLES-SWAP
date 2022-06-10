@@ -56,7 +56,8 @@ class Circle {
   }
 
   update(percent) {
-    // add pos in front
+    // add pos in front if the circle is moving
+    // otherwise, remove the last pos
     if (this._moving) this._old_pos.unshift(new Point(this._x, this._y));
     else if (this._old_pos.length > 1) this._old_pos.pop();
 
@@ -68,7 +69,7 @@ class Circle {
     this._x = this._start_x + percent * (this._end_x - this._start_x);
     this._y = this._start_y + percent * (this._end_y - this._start_y);
 
-    if (percent >= 1) this.resetPos();
+    if (percent >= 1) this.resetDest();
   }
 
   setDest(other) {
@@ -78,10 +79,10 @@ class Circle {
     this._moving = true;
   }
 
-  resetPos() {
+  resetDest() {
+    // reset position so the circle stops moving and can be used again
     this._start_x = this._end_x;
     this._start_y = this._end_y;
-
     this._moving = false;
   }
 
@@ -97,15 +98,7 @@ class Circle {
     return this._moving;
   }
 
-  get has_tail() {
+  get has_trail() {
     return this._old_pos.length > 1;
-  }
-
-  get ended() {
-    return this._old_pos.length == 1;
-  }
-
-  get trail_length() {
-    return this._old_pos.length - 1;
   }
 }
