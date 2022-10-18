@@ -1,3 +1,8 @@
+@font-face {
+  font-family: "Roboto";
+  src: url(./fonts/Roboto-Light.ttf);
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -5,16 +10,18 @@
 }
 
 body {
- font-size: var(--text-size);
- background-color: var(--background-color);
- color: var(--text-color);
+  font-size: var(--text-size);
+  background-color: var(--background-color);
+  color: var(--text-color);
+  font-family: "Roboto";
 }
 
 a {
   user-select: none;
 }
 
-a:visited, a:active {
+a:visited,
+a:active {
   color: var(--visited-link-color);
 }
 
