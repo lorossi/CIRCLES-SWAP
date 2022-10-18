@@ -24,9 +24,12 @@ class Circle {
     // old position, keep track for trailing
     this._old_pos = [new Point(this._x, this._y)];
     // offset for chromatic aberration
-    this._d_pos = [-1, 1, 0];
-    // colors for chromatic aberration
-    this._colours = ["#FF00FF", "#00FFFF", "#FFFFFF"];
+    this._palette = [
+      { x: -2, y: -2, color: "#FF00FF" },
+      { x: 2, y: -2, color: "#00FFFF" },
+      { x: 1, y: 2, color: "#FFFF00" },
+      { x: 0, y: 0, color: "#FFFFFF" },
+    ];
   }
 
   show(ctx) {
@@ -35,20 +38,23 @@ class Circle {
     ctx.translate(this._scl / 2, this._scl / 2);
     ctx.globalCompositeOperation = "screen";
     for (let i = this._old_pos.length - 1; i >= 0; i--) {
+      const percent = i / this._old_pos.length;
+      const size = this._map(this._ease(percent), 0, 1, 1, 0.5) * this._r;
+
       ctx.save();
       ctx.translate(
         this._old_pos[i].x * this._scl,
         this._old_pos[i].y * this._scl
       );
-      for (let j = 0; j < this._colours.length; j++) {
+      this._palette.forEach((p) => {
         ctx.save();
-        ctx.translate(this._d_pos[j], this._d_pos[j]);
+        ctx.translate(p.x, p.y);
         ctx.beginPath();
-        ctx.fillStyle = this._colours[j];
-        ctx.arc(0, 0, this._r, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.arc(0, 0, size, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
-      }
+      });
       ctx.restore();
     }
 
@@ -86,6 +92,16 @@ class Circle {
     this._moving = false;
   }
 
+  _map(value, old_min, old_max, new_min, new_max) {
+    return (
+      ((value - old_min) * (new_max - new_min)) / (old_max - old_min) + new_min
+    );
+  }
+
+  _ease(x) {
+    return Math.pow(x, 4);
+  }
+
   get x() {
     return this._start_x;
   }
@@ -100,5 +116,9 @@ class Circle {
 
   get has_trail() {
     return this._old_pos.length > 1;
+  }
+
+  get has_ended() {
+    return !this._has_trail && !this._moving;
   }
 }

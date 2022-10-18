@@ -1,10 +1,10 @@
 class Sketch extends Engine {
   preload() {
-    this._size = 12; // number of circle in each row and column
+    this._size = 8; // number of circle in each row and column
     this._background_color = "rgb(15, 15, 15)";
-    this._scl = 0.8; // scale of the canvas
+    this._scl = 0.7; // scale of the canvas
     this._steps = 10; // number of steps in the animation
-    this._trail_length = 40; // number of frames the circle will be visible
+    this._trail_length = 6; // number of frames the circle will be visible
     this._step_duration = 60; // number of frames per step
     this._max_tries = 5000; // number of attempts to make a pair
 
@@ -25,14 +25,15 @@ class Sketch extends Engine {
 
     if (this._recording) {
       this.startRecording();
-      console.log("%c Recording started", "color: red; font-size: 2rem");
+      console.log("%cRecording started", "color: red; font-size: 1rem");
     }
   }
 
   draw() {
     // percent easing
     const percent = easeInOut(
-      (this.frameCount % this._step_duration) / this._step_duration
+      (this.frameCount % this._step_duration) / this._step_duration,
+      4
     );
 
     // if the current step has ended, start a new one
@@ -42,12 +43,20 @@ class Sketch extends Engine {
       if (this._current_step < this._steps) {
         // make pairs
         this._current_step++;
+        console.log(`Preparing step ${this._current_step}/${this._steps}`);
         let tries = 0;
+        let pairs = 0;
+        const max_pairs = Math.ceil(this._size * Math.SQRT2);
         // time escaped brute force
-        while (tries < this._max_tries) {
-          this._make_pairs();
+        while (tries < this._max_tries && pairs < max_pairs) {
+          const success = this._make_pairs();
+          if (success) pairs++;
+
           tries++;
         }
+        console.log(
+          `Found ${pairs} pairs (out of a maximum of ${max_pairs}) in ${tries} tries`
+        );
       }
     }
 
@@ -70,17 +79,17 @@ class Sketch extends Engine {
 
     this.ctx.restore();
 
-    // capture frame
-    if (this._recording) {
-      if (
-        this._current_step < this._steps ||
-        this._circles.some((c) => c.has_trail)
-      ) {
-      } else {
-        this.stopRecording();
-        this.saveRecording();
-        console.log("%c Recording ended", "color: red; font-size: 2rem");
-      }
+    // save recording
+    if (
+      this._recording &&
+      this._current_step == this._steps &&
+      this._circles.every((c) => c.has_ended)
+    ) {
+      this.noLoop();
+      this._recording = false;
+      this.stopRecording();
+      this.saveRecording();
+      console.log("%cRecording ended", "color: red; font-size: 1rem");
     }
   }
 
