@@ -40,10 +40,17 @@ class Sketch extends Engine {
     if (percent == 0) {
       // reset each position
       this._circles.forEach((c) => c.resetDest());
+
+      if (this._current_step >= this._steps && !this._recording)
+        this._current_step = 0;
+
       if (this._current_step < this._steps) {
         // make pairs
         this._current_step++;
-        console.log(`Preparing step ${this._current_step}/${this._steps}`);
+
+        if (this._recording)
+          console.log(`Preparing step ${this._current_step}/${this._steps}`);
+
         let tries = 0;
         let pairs = 0;
         const max_pairs = Math.ceil(this._size * Math.SQRT2);
@@ -54,9 +61,11 @@ class Sketch extends Engine {
 
           tries++;
         }
-        console.log(
-          `Found ${pairs} pairs (out of a maximum of ${max_pairs}) in ${tries} tries`
-        );
+
+        if (this._recording)
+          console.log(
+            `Found ${pairs} pairs (out of a maximum of ${max_pairs}) in ${tries} tries`
+          );
       }
     }
 
@@ -91,6 +100,11 @@ class Sketch extends Engine {
       this.saveRecording();
       console.log("%cRecording ended", "color: red; font-size: 1rem");
     }
+  }
+
+  click() {
+    if (this._recording) return;
+    this.setup();
   }
 
   _make_pairs() {
