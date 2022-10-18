@@ -8,6 +8,7 @@ class Sketch extends Engine {
     this._step_duration = 60; // number of frames per step
     this._max_tries = 5000; // number of attempts to make a pair
 
+    this._frame_delay = 0;
     this._recording = false;
   }
 
@@ -32,7 +33,8 @@ class Sketch extends Engine {
   draw() {
     // percent easing
     const percent = easeInOut(
-      (this.frameCount % this._step_duration) / this._step_duration,
+      ((this.frameCount - this._frame_delay) % this._step_duration) /
+        this._step_duration,
       4
     );
 
@@ -104,6 +106,7 @@ class Sketch extends Engine {
 
   click() {
     if (this._recording) return;
+    this._frame_delay = this.frameCount % this._step_duration;
     this.setup();
   }
 
