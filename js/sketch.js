@@ -8,7 +8,7 @@ class Sketch extends Engine {
     this._step_duration = 60; // number of frames per step
     this._max_tries = 5000; // number of attempts to make a pair
 
-    this._recording = true;
+    this._recording = false;
   }
 
   setup() {
@@ -23,11 +23,9 @@ class Sketch extends Engine {
       this._circles.push(new_circle);
     }
 
-    // setup capturer
     if (this._recording) {
-      this._capturer = new CCapture({ format: "png" });
-      this._capturer.start();
-      console.log("%c Recording started", "color: green; font-size: 2rem");
+      this.startRecording();
+      console.log("%c Recording started", "color: red; font-size: 2rem");
     }
   }
 
@@ -78,10 +76,9 @@ class Sketch extends Engine {
         this._current_step < this._steps ||
         this._circles.some((c) => c.has_trail)
       ) {
-        this._capturer.capture(this._canvas);
       } else {
-        this._capturer.stop();
-        this._capturer.save();
+        this.stopRecording();
+        this.saveRecording();
         console.log("%c Recording ended", "color: red; font-size: 2rem");
       }
     }
