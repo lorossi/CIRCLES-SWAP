@@ -21,7 +21,7 @@ It features a simple looping animation where circles exchange themselves in squa
 
 ![image-3](output/0000093.png)
 
-![image-2](output/0000242.png)
+![image-2](output/0000579.png)
 
 ![gif](output/output.gif)
 
